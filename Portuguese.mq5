@@ -228,7 +228,7 @@ void TrailingStop(double price){
              if (price > ( StopLossCurr + trailing_stop * _Point)){
                 double newSL = NormalizeDouble((StopLossCurr + trailing_step * _Point),_Digits);
                if (trade.PositionModify(PositionTicket, newSL, TakeProfitCurr)){
-                  Print("TrainingStop has successfully modified position buy. ResultRetcode:  ", trade.ResultRetcode(), ",  RetcodeDescription: ", trade.ResultRetcodeDescription());             
+                  Print("TrailingStop has successfully modified position buy. ResultRetcode:  ", trade.ResultRetcode(), ",  RetcodeDescription: ", trade.ResultRetcodeDescription());             
                }
                else{
                      Print("TrailingStop Error- modification of buy position failed. ResultRetcode: ", trade.ResultRetcode(), ", RetcodeDescription: ", trade.ResultRetcodeDescription());
@@ -268,7 +268,7 @@ void BreakEven(double price){
                   Print("BreakEven has successfully modified position buy. ResultRetcode: ",trade.ResultRetcode(),", RetcodeDescription: ",trade.ResultRetcodeDescription());
                }
                else{
-                  Print("BreakEven - modification of  buy position failed. ResultRetcode: ",trade.ResultRetcode(),", RetcodeDescription: ",trade.ResultRetcodeDescription());
+                  Print("BreakEven- modification of  buy position failed. ResultRetcode: ",trade.ResultRetcode(),", RetcodeDescription: ",trade.ResultRetcodeDescription());
                }
             }
       }
