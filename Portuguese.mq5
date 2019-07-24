@@ -64,6 +64,8 @@ double          smaArray4[];
 int             smaHandle4;
 double          smaArray5[];
 int             smaHandle5;
+bool            activate;
+bool            o_positions;
 //---
 MqlTick         last_tick;
 MqlRates        rates[];
@@ -185,7 +187,26 @@ void OnTick(){
                   smaArray[0] < smaArray5[0] &&
                   rates[0].close < rates[1].close;
 //---
-   if (up_trend  && PositionsTotal() < 1){
+   o_positions=false;
+   for (int i = PositionsTotal()-1; i>=0; i--){
+       string symbol = PositionGetSymbol(i);
+       ulong magic = PositionGetInteger(POSITION_MAGIC);
+       if ( symbol == _Symbol && magic == magic_number){
+       o_positions = true;
+       } 
+   }
+//--- 
+   if (!o_positions){
+       activate=false;
+   }
+   if (o_positions && !activate){
+      BreakEven(last_tick.last);
+   }
+   if (o_positions && activate){
+      TrailingStop(last_tick.last);
+   } 
+//---
+   if (up_trend && !o_positions){
       PRC = NormalizeDouble(last_tick.ask, _Digits);
       STL = NormalizeDouble(PRC - stop_loss * _Point, _Digits);
       TKP = NormalizeDouble(PRC + take_profit * _Point, _Digits);
@@ -197,8 +218,7 @@ void OnTick(){
       }
    }
 //---
-   if (dow_trend &&  PositionsTotal() < 1 ){
-      
+   if (dow_trend && !o_positions){
       PRC = NormalizeDouble(last_tick.bid, _Digits);
       STL = NormalizeDouble(PRC + stop_loss * _Point, _Digits);
       TKP = NormalizeDouble(PRC - take_profit * _Point, _Digits);
@@ -209,8 +229,6 @@ void OnTick(){
          Print("Open sell position failed. ResultRetcode: ",trade.ResultRetcode(),"RetcodeDescription: ",trade.ResultRetcodeDescription());
          }
    }
-   BreakEven(last_tick.last);
-   TrailingStop(last_tick.last);
 }
 //+--------------------------------------------------------------------+
 //TRAILING STOOP                                                       |
@@ -221,26 +239,24 @@ void TrailingStop(double price){
       ulong magic = PositionGetInteger(POSITION_MAGIC);
       if (symbol==_Symbol && magic == magic_number){
          ulong PositionTicket = PositionGetInteger(POSITION_TICKET);
-         double StopLossCurr = NormalizeDouble(PositionGetDouble(POSITION_SL),_Digits); 
-         double TakeProfitCurr = NormalizeDouble(PositionGetDouble(POSITION_TP),_Digits);
-         if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY){
-            price=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_ASK),_Digits);
-             if (price > ( StopLossCurr + trailing_stop * _Point)){
+         double StopLossCurr = PositionGetDouble(POSITION_SL); 
+         double TakeProfitCurr = PositionGetDouble(POSITION_TP);
+         if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY){    
+             if (price >= ( StopLossCurr + trailing_stop * _Point)){
                 double newSL = NormalizeDouble((StopLossCurr + trailing_step * _Point),_Digits);
                if (trade.PositionModify(PositionTicket, newSL, TakeProfitCurr)){
-                  Print("TrailingStop has successfully modified position buy. ResultRetcode:  ", trade.ResultRetcode(), ",  RetcodeDescription: ", trade.ResultRetcodeDescription());             
+                  Print("TrailingStop has successfully modified position buy. ResultRetcode:  ", trade.ResultRetcode(), ",  RetcodeDescription: ", trade.ResultRetcodeDescription()); 
                }
                else{
-                     Print("TrailingStop Error- modification of buy position failed. ResultRetcode: ", trade.ResultRetcode(), ", RetcodeDescription: ", trade.ResultRetcodeDescription());
+                     Print("TrailingStop Error - modification of buy position failed. ResultRetcode: ", trade.ResultRetcode(), ", RetcodeDescription: ", trade.ResultRetcodeDescription());
                }
             }
          }
-         if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL){
-                  price =NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_BID),_Digits);
-                  if ( price < ( StopLossCurr - trailing_stop * _Point)){
+         if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL){      
+                  if ( price <= ( StopLossCurr - trailing_stop * _Point)){
                        double newSL = NormalizeDouble((StopLossCurr - trailing_step * _Point),_Digits);
                      if (trade.PositionModify(PositionTicket, newSL, TakeProfitCurr)){
-                           Print("TrainingStop has successfully modified position sell. ResultRetcode: ", trade.ResultRetcode(), ", RetcodeDescription: ", trade.ResultRetcodeDescription());
+                           Print("TrailingStop has successfully modified position sell. ResultRetcode: ", trade.ResultRetcode(), ", RetcodeDescription: ", trade.ResultRetcodeDescription());
                      }
                      else{
                            Print("TrailingStop Error- modification of sell position failed. ResultRetcode: ", trade.ResultRetcode(), ", RetcodeDescription: ", trade.ResultRetcodeDescription());
@@ -262,24 +278,24 @@ void BreakEven(double price){
          double PriceEntry=NormalizeDouble(PositionGetDouble(POSITION_PRICE_OPEN),_Digits);
          double CurrentTakeProfit=NormalizeDouble(PositionGetDouble(POSITION_TP),_Digits);
          if (PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_BUY){
-            price=NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_ASK),_Digits);
-            if (price > (PriceEntry + break_even * _Point)){
+            if (price >= (PriceEntry + break_even * _Point)){
                if (trade.PositionModify(PositionTicket,PriceEntry,CurrentTakeProfit)){
                   Print("BreakEven has successfully modified position buy. ResultRetcode: ",trade.ResultRetcode(),", RetcodeDescription: ",trade.ResultRetcodeDescription());
+                  activate=true;
                }
                else{
-                  Print("BreakEven- modification of  buy position failed. ResultRetcode: ",trade.ResultRetcode(),", RetcodeDescription: ",trade.ResultRetcodeDescription());
+                  Print("BreakEven- modification of buy position failed. ResultRetcode: ",trade.ResultRetcode(),", RetcodeDescription: ",trade.ResultRetcodeDescription());
                }
             }
       }
-         if (PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_SELL){
-               price =NormalizeDouble(SymbolInfoDouble(_Symbol,SYMBOL_BID),_Digits);
-                if (price < (PriceEntry - break_even * _Point)){
+         if (PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_SELL){       
+                if (price <= (PriceEntry - break_even * _Point)){
                   if (trade.PositionModify(PositionTicket,PriceEntry,CurrentTakeProfit)){
                      Print("BreakEven has successfully modified position sell. ResultRetcode: ",trade.ResultRetcode(),", RetcodeDescription: ",trade.ResultRetcodeDescription());
+                     activate=true;
                   }
                   else{
-                        Print("BreakEven- modification of  sell position failed. ResultRetcode: ",trade.ResultRetcode(),", RetcodeDescription: ",trade.ResultRetcodeDescription());
+                        Print("BreakEven- modification of sell position failed. ResultRetcode: ",trade.ResultRetcode(),", RetcodeDescription: ",trade.ResultRetcodeDescription());
                      }
                   }
       }
