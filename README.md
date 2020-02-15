@@ -1,6 +1,6 @@
 Introduction
 
-This is a basic example of an Expert Advisor. 
+This is a basic example of an Expert Advisor. The platform type is MT5 hedge.
 
 Support
 
