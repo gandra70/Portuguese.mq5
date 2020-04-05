@@ -24,4 +24,4 @@ Trading any financial market involves risk. This Code/Software example is provid
 
 Check out my other robots here ->https://www.mql5.com/en/users/drgandra/seller#products
 
-Watch my youtube channel here - >https://www.youtube.com/channel/UCnPuIaXAWmhKxxN1k5OkMsg?view_as=subscriber
+Watch my youtube channel here - >https://www.youtube.com/channel/UCnPuIaXAWmhKxxN1k5OkMsg
