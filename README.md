@@ -21,3 +21,7 @@ Copyright © 2020 Dragan Drenjanin- All Rights Reserved
 Disclaimer and Risk Warnings
 
 Trading any financial market involves risk. This Code/Software example is provided for illustrative and educational purposes only and should not be construed as investment advice or strategy.
+
+Check out my other robots here ->https://www.mql5.com/en/users/drgandra/seller#products
+
+Watch my youtube channel here - >https://www.youtube.com/channel/UCnPuIaXAWmhKxxN1k5OkMsg?view_as=subscriber
